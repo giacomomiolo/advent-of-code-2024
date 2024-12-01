@@ -6,9 +6,8 @@ pub fn solve() -> Result<i64> {
 }
 
 pub fn solve_for_input(input: &str) -> Result<i64> {
-    let line_count = input.lines().count();
-    let mut left_numbers = Vec::with_capacity(line_count);
-    let mut right_numbers = Vec::with_capacity(line_count);
+    let mut left_numbers = Vec::new();
+    let mut right_numbers = Vec::new();
 
     for line in input.lines() {
         let mut iter = line
