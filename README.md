@@ -1,7 +1,7 @@
 # Advent of Code 2024
 
-Solutions for Advent of Code 2024 in rust 🦀
-![crabklaus](crabklaus.jpg)
+Solutions for Advent of Code 2024 in rust 🦀 With benchmarks and AI generated pictures for each day.
+![crabklaus](pics/crabklaus.jpg)
 
 <!-- BENCHMARKS -->
 ## Benchmarks
@@ -14,3 +14,7 @@ Benchmarks done with [criterion](https://github.com/bheisler/criterion.rs), usin
 | Day 01, Part 1 | 68.93 µs (-2%) | 70.20 µs | 72.44 µs (+3%) | 79.50 µs (+13%) |
 
 <!-- BENCHMARKS_END -->
+
+## Day 1
+
+![day1](pics/day1.jpg)
