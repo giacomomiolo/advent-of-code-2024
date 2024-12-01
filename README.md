@@ -17,4 +17,4 @@ Benchmarks done with [criterion](https://github.com/bheisler/criterion.rs), usin
 
 ## Day 1
 
-![day1](pics/day1.jpg)
+![day1](pics/day01.jpg)
