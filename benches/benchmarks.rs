@@ -142,7 +142,7 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
         let p99 = measurements[p99_idx];
 
         results.push(BenchStats {
-            name: "Day 01, Part 1".to_string(),
+            name: "Day 01, Part 2".to_string(),
             min,
             median,
             p95,
