@@ -20,6 +20,7 @@ fn format_duration(d: Duration) -> String {
 #[derive(Clone)]
 struct BenchStats {
     name: String,
+    min: Duration,
     median: Duration,
     p95: Duration,
     p99: Duration,
@@ -28,6 +29,10 @@ struct BenchStats {
 impl BenchStats {
     fn overhead_percent(&self, duration: Duration) -> f64 {
         ((duration.as_nanos() as f64 / self.median.as_nanos() as f64) - 1.0) * 100.0
+    }
+
+    fn min_percent(&self) -> f64 {
+        ((self.median.as_nanos() as f64 / self.min.as_nanos() as f64) - 1.0) * -100.0
     }
 }
 
@@ -43,16 +48,18 @@ fn update_readme(benchmarks: &[BenchStats]) {
     benchmark_section.push_str("## Benchmarks\n");
     benchmark_section.push_str("Ran on MacBook Pro M1 Max 2021 with 32GB RAM and 10 cores.\n");
     benchmark_section.push_str("Benchmarks done with [criterion](https://github.com/bheisler/criterion.rs), using 200 samples per benchmark.\n\n");
-    benchmark_section.push_str("| Solution | Median | p95 (+%) | p99 (+%) |\n");
-    benchmark_section.push_str("|----------|--------|-----------|----------|\n");
+    benchmark_section.push_str("| Solution | Min (-%) | Median | p95 (+%) | p99 (+%) |\n");
+    benchmark_section.push_str("|----------|----------|---------|-----------|----------|\n");
 
     let mut sorted_benchmarks = benchmarks.to_vec();
     sorted_benchmarks.sort_by(|a, b| a.name.cmp(&b.name));
 
     for stats in &sorted_benchmarks {
         benchmark_section.push_str(&format!(
-            "| {} | {} | {} (+{:.0}%) | {} (+{:.0}%) |\n",
+            "| {} | {} ({:.0}%) | {} | {} (+{:.0}%) | {} (+{:.0}%) |\n",
             stats.name,
+            format_duration(stats.min),
+            stats.min_percent(),
             format_duration(stats.median),
             format_duration(stats.p95),
             stats.overhead_percent(stats.p95),
@@ -96,6 +103,7 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
         });
 
         measurements.sort_unstable();
+        let min = measurements[0];
         let median = measurements[measurements.len() / 2];
         let p95_idx = ((measurements.len() as f64 * 0.95) as usize).min(measurements.len() - 1);
         let p99_idx = ((measurements.len() as f64 * 0.99) as usize).min(measurements.len() - 1);
@@ -104,6 +112,7 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
 
         results.push(BenchStats {
             name: "Day 01, Part 1".to_string(),
+            min,
             median,
             p95,
             p99,
@@ -125,6 +134,7 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
         });
 
         measurements.sort_unstable();
+        let min = measurements[0];
         let median = measurements[measurements.len() / 2];
         let p95_idx = ((measurements.len() as f64 * 0.95) as usize).min(measurements.len() - 1);
         let p99_idx = ((measurements.len() as f64 * 0.99) as usize).min(measurements.len() - 1);
@@ -132,7 +142,8 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
         let p99 = measurements[p99_idx];
 
         results.push(BenchStats {
-            name: "Day 01, Part 2".to_string(),
+            name: "Day 01, Part 1".to_string(),
+            min,
             median,
             p95,
             p99,
