@@ -14,7 +14,7 @@ pub fn solve_for_input(input: &str) -> Result<i64> {
         let mut iter = line
             .split_whitespace()
             .filter_map(|s| s.parse::<i64>().ok());
-        
+
         if let (Some(left), Some(right)) = (iter.next(), iter.next()) {
             left_numbers.push(left);
             right_numbers.push(right);
