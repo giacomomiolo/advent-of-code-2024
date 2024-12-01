@@ -3,4 +3,10 @@ name = "advent-of-code-2024"
 version = "0.1.0"
 edition = "2021"
 
+[[bench]]
+name = "benchmarks"
+harness = false
+
 [dependencies]
+anyhow = "1.0.93"
+criterion = "0.5.1"

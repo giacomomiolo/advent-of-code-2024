@@ -1,1 +1,112 @@
-/target
+# ---> General
+*.log
+*.tgz
+*.pem
+*.seed
+**/*.bk
+*.rs.bk
+*.pid
+*.pid.lock
+*.tar.gz
+*.tgz
+*.icloud
+*.vsix
+*.tsbuildinfo
+**/*.rs.bk
+.DS_Store
+.env
+.env.*
+.env*.local
+.history
+.pnpm-debug.log*
+.next
+.next/
+node_repl_history
+.report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+.nyc_output
+*.lcov
+coverage/
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.vscode-test
+.svelte-kit
+.docusaurus
+.vuepress/dist
+.nuxt
+dist
+.out/
+.cache/
+.parcel-cache
+.fusebox/
+.serverless/
+.webpack/
+.temp
+.dynamodb/
+.tern-port
+
+# ---> macOS System Files
+.Icon
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ---> Node
+node_modules/
+jspm_packages/
+lib-cov
+.grunt
+bower_components
+build/Release
+
+# ---> Rust
+debug/
+target/
+**/*.rs.bk
+*.pdb
+
+# ---> TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# ---> Visual Studio Code
+.vscode/
+.history/
+.history
+.ionide
+
+# ---> NextJS
+/out/
+/build
+
+# ---> Parcel
+.cache
+.parcel-cache
+
+# ---> Snowpack
+web_modules/
+
+# ---> Misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.stylelintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
