@@ -17,7 +17,21 @@ fn format_duration(d: Duration) -> String {
     }
 }
 
-fn update_readme(benchmarks: &[(String, String)]) {
+#[derive(Clone)]
+struct BenchStats {
+    name: String,
+    median: Duration,
+    p95: Duration,
+    p99: Duration,
+}
+
+impl BenchStats {
+    fn overhead_percent(&self, duration: Duration) -> f64 {
+        ((duration.as_nanos() as f64 / self.median.as_nanos() as f64) - 1.0) * 100.0
+    }
+}
+
+fn update_readme(benchmarks: &[BenchStats]) {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push("README.md");
     let content = fs::read_to_string(&d).unwrap();
@@ -26,14 +40,25 @@ fn update_readme(benchmarks: &[(String, String)]) {
     let end_parts: Vec<&str> = parts[1].split("<!-- BENCHMARKS_END -->").collect();
 
     let mut benchmark_section = String::from("\n");
-    benchmark_section.push_str("| Solution | Time |\n");
-    benchmark_section.push_str("|----------|------|\n");
+    benchmark_section.push_str("## Benchmarks\n");
+    benchmark_section.push_str("Ran on MacBook Pro M1 Max 2021 with 32GB RAM and 10 cores.\n");
+    benchmark_section.push_str("Benchmarks done with [criterion](https://github.com/bheisler/criterion.rs), using 200 samples per benchmark.\n\n");
+    benchmark_section.push_str("| Solution | Median | p95 (+%) | p99 (+%) |\n");
+    benchmark_section.push_str("|----------|--------|-----------|----------|\n");
 
     let mut sorted_benchmarks = benchmarks.to_vec();
-    sorted_benchmarks.sort_by(|a, b| a.0.cmp(&b.0));
+    sorted_benchmarks.sort_by(|a, b| a.name.cmp(&b.name));
 
-    for (name, result) in sorted_benchmarks {
-        benchmark_section.push_str(&format!("| {} | {} |\n", name, result));
+    for stats in &sorted_benchmarks {
+        benchmark_section.push_str(&format!(
+            "| {} | {} | {} (+{:.0}%) | {} (+{:.0}%) |\n",
+            stats.name,
+            format_duration(stats.median),
+            format_duration(stats.p95),
+            stats.overhead_percent(stats.p95),
+            format_duration(stats.p99),
+            stats.overhead_percent(stats.p99)
+        ));
     }
     benchmark_section.push('\n');
 
@@ -50,36 +75,68 @@ fn update_readme(benchmarks: &[(String, String)]) {
     file.write_all(new_content.as_bytes()).unwrap();
 }
 
-fn benchmark_day01(c: &mut Criterion, results: &mut Vec<(String, String)>) {
+fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
     if let Ok(input) = day01::read_input() {
         let mut group = c.benchmark_group("day01");
-        group.sample_size(100);
+        group.sample_size(200);
 
-        let mut duration = Duration::ZERO;
+        let mut measurements = Vec::with_capacity(200);
+
         group.bench_function("part1", |b| {
             b.iter_custom(|iters| {
                 let start = std::time::Instant::now();
                 for _ in 0..iters {
                     black_box(day01::part1::solve_for_input(black_box(&input))).unwrap();
                 }
-                duration = start.elapsed() / iters as u32;
-                start.elapsed()
+                let elapsed = start.elapsed();
+                let per_iter = elapsed / iters as u32;
+                measurements.push(per_iter);
+                elapsed
             });
         });
-        results.push(("Day 01, Part 1".to_string(), format_duration(duration)));
 
-        let mut duration = Duration::ZERO;
+        measurements.sort_unstable();
+        let median = measurements[measurements.len() / 2];
+        let p95_idx = ((measurements.len() as f64 * 0.95) as usize).min(measurements.len() - 1);
+        let p99_idx = ((measurements.len() as f64 * 0.99) as usize).min(measurements.len() - 1);
+        let p95 = measurements[p95_idx];
+        let p99 = measurements[p99_idx];
+
+        results.push(BenchStats {
+            name: "Day 01, Part 1".to_string(),
+            median,
+            p95,
+            p99,
+        });
+
+        measurements.clear();
+
         group.bench_function("part2", |b| {
             b.iter_custom(|iters| {
                 let start = std::time::Instant::now();
                 for _ in 0..iters {
                     black_box(day01::part2::solve_for_input(black_box(&input))).unwrap();
                 }
-                duration = start.elapsed() / iters as u32;
-                start.elapsed()
+                let elapsed = start.elapsed();
+                let per_iter = elapsed / iters as u32;
+                measurements.push(per_iter);
+                elapsed
             });
         });
-        results.push(("Day 01, Part 2".to_string(), format_duration(duration)));
+
+        measurements.sort_unstable();
+        let median = measurements[measurements.len() / 2];
+        let p95_idx = ((measurements.len() as f64 * 0.95) as usize).min(measurements.len() - 1);
+        let p99_idx = ((measurements.len() as f64 * 0.99) as usize).min(measurements.len() - 1);
+        let p95 = measurements[p95_idx];
+        let p99 = measurements[p99_idx];
+
+        results.push(BenchStats {
+            name: "Day 01, Part 2".to_string(),
+            median,
+            p95,
+            p99,
+        });
 
         group.finish();
     }
@@ -93,7 +150,7 @@ fn benchmark_all(c: &mut Criterion) {
 
 criterion_group! {
     name = benches;
-    config = Criterion::default().sample_size(100);
+    config = Criterion::default().sample_size(200);
     targets = benchmark_all
 }
 criterion_main!(benches);
