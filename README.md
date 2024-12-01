@@ -10,7 +10,7 @@ Benchmarks done with [criterion](https://github.com/bheisler/criterion.rs), usin
 
 | Solution | Min (-%) | Median | p95 (+%) | p99 (+%) |
 |----------|----------|---------|-----------|----------|
-| Day 01, Part 1 | 46.16 µs (-2%) | 47.16 µs | 49.44 µs (+5%) | 52.95 µs (+12%) |
-| Day 01, Part 1 | 104.70 µs (-3%) | 107.53 µs | 114.74 µs (+7%) | 160.50 µs (+49%) |
+| Day 01, Part 1 | 46.23 µs (-3%) | 47.54 µs | 49.46 µs (+4%) | 52.46 µs (+10%) |
+| Day 01, Part 1 | 68.93 µs (-2%) | 70.20 µs | 72.44 µs (+3%) | 79.50 µs (+13%) |
 
 <!-- BENCHMARKS_END -->
