@@ -1,4 +1,4 @@
-use advent_of_code_2024::solutions::day01;
+use advent_of_code_2024::solutions::{day01, day02};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
@@ -82,18 +82,24 @@ fn update_readme(benchmarks: &[BenchStats]) {
     file.write_all(new_content.as_bytes()).unwrap();
 }
 
-fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
-    if let Ok(input) = day01::read_input() {
-        let mut group = c.benchmark_group("day01");
-        group.sample_size(200);
+fn benchmark_day(
+    c: &mut Criterion,
+    results: &mut Vec<BenchStats>,
+    day: u32,
+    input: &str,
+    parts: &[(String, fn(&str) -> anyhow::Result<i64>)],
+) {
+    let mut group = c.benchmark_group(format!("day{:02}", day));
+    group.sample_size(200);
 
+    for (part_name, solve_fn) in parts {
         let mut measurements = Vec::with_capacity(200);
 
-        group.bench_function("part1", |b| {
+        group.bench_function(part_name, |b| {
             b.iter_custom(|iters| {
                 let start = std::time::Instant::now();
                 for _ in 0..iters {
-                    black_box(day01::part1::solve_for_input(black_box(&input))).unwrap();
+                    black_box(solve_fn(black_box(input))).unwrap();
                 }
                 let elapsed = start.elapsed();
                 let per_iter = elapsed / iters as u32;
@@ -111,51 +117,48 @@ fn benchmark_day01(c: &mut Criterion, results: &mut Vec<BenchStats>) {
         let p99 = measurements[p99_idx];
 
         results.push(BenchStats {
-            name: "Day 01, Part 1".to_string(),
+            name: format!("Day {:02}, {}", day, part_name),
             min,
             median,
             p95,
             p99,
         });
-
-        measurements.clear();
-
-        group.bench_function("part2", |b| {
-            b.iter_custom(|iters| {
-                let start = std::time::Instant::now();
-                for _ in 0..iters {
-                    black_box(day01::part2::solve_for_input(black_box(&input))).unwrap();
-                }
-                let elapsed = start.elapsed();
-                let per_iter = elapsed / iters as u32;
-                measurements.push(per_iter);
-                elapsed
-            });
-        });
-
-        measurements.sort_unstable();
-        let min = measurements[0];
-        let median = measurements[measurements.len() / 2];
-        let p95_idx = ((measurements.len() as f64 * 0.95) as usize).min(measurements.len() - 1);
-        let p99_idx = ((measurements.len() as f64 * 0.99) as usize).min(measurements.len() - 1);
-        let p95 = measurements[p95_idx];
-        let p99 = measurements[p99_idx];
-
-        results.push(BenchStats {
-            name: "Day 01, Part 2".to_string(),
-            min,
-            median,
-            p95,
-            p99,
-        });
-
-        group.finish();
     }
+
+    group.finish();
 }
 
 fn benchmark_all(c: &mut Criterion) {
     let mut results = Vec::new();
-    benchmark_day01(c, &mut results);
+    
+    // Benchmark Day 01
+    if let Ok(input) = day01::read_input() {
+        benchmark_day(
+            c,
+            &mut results,
+            1,
+            &input,
+            &[
+                ("Part 1".to_string(), day01::part1::solve_for_input),
+                ("Part 2".to_string(), day01::part2::solve_for_input),
+            ],
+        );
+    }
+
+    // Benchmark Day 02
+    if let Ok(input) = day02::read_input() {
+        benchmark_day(
+            c,
+            &mut results,
+            2,
+            &input,
+            &[
+                ("Part 1".to_string(), day02::part1::solve_for_input),
+                ("Part 2".to_string(), day02::part2::solve_for_input),
+            ],
+        );
+    }
+
     update_readme(&results);
 }
 
