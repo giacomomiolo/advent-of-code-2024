@@ -5,8 +5,10 @@ pub fn solve() -> Result<i64> {
     solve_for_input(&input)
 }
 
+#[inline(always)]
 fn is_safe_sequence(numbers: &[i64]) -> bool {
-    if numbers.len() < 2 {
+    let len = numbers.len();
+    if len < 2 {
         return true;
     }
 
@@ -16,35 +18,35 @@ fn is_safe_sequence(numbers: &[i64]) -> bool {
     }
 
     let increasing = first_diff > 0;
-    
-    for window in numbers.windows(2) {
-        let diff = window[1] - window[0];
-        
-        if (increasing && diff <= 0) || (!increasing && diff >= 0) {
-            return false;
-        }
-        
-        if diff.abs() > 3 || diff.abs() < 1 {
-            return false;
-        }
-    }
+    let mut prev = numbers[1];
 
-    true
+    numbers[2..].iter().all(|&curr| {
+        let diff = curr - prev;
+        prev = curr;
+        diff.abs() <= 3 && diff.abs() >= 1 && 
+        ((increasing && diff > 0) || (!increasing && diff < 0))
+    })
 }
 
 pub fn solve_for_input(input: &str) -> Result<i64> {
-    let result = input
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .filter(|line| {
-            let numbers: Vec<i64> = line
-                .split_whitespace()
-                .filter_map(|n| n.parse().ok())
-                .collect();
-            
-            is_safe_sequence(&numbers)
-        })
-        .count();
+    let mut numbers = Vec::with_capacity(8);
+    let mut count = 0;
 
-    Ok(result as i64)
+    for line in input.lines() {
+        if line.is_empty() {
+            continue;
+        }
+
+        numbers.clear();
+        numbers.extend(
+            line.split_whitespace()
+                .filter_map(|n| n.parse::<i64>().ok())
+        );
+
+        if is_safe_sequence(&numbers) {
+            count += 1;
+        }
+    }
+
+    Ok(count)
 }

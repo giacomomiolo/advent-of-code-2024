@@ -5,8 +5,10 @@ pub fn solve() -> Result<i64> {
     solve_for_input(&input)
 }
 
+#[inline]
 fn is_safe_sequence(numbers: &[i64]) -> bool {
-    if numbers.len() < 2 {
+    let len = numbers.len();
+    if len < 2 {
         return true;
     }
 
@@ -16,31 +18,35 @@ fn is_safe_sequence(numbers: &[i64]) -> bool {
     }
 
     let increasing = first_diff > 0;
-    
-    for window in numbers.windows(2) {
-        let diff = window[1] - window[0];
-        
-        if (increasing && diff <= 0) || (!increasing && diff >= 0) {
-            return false;
-        }
-        
-        if diff.abs() > 3 || diff.abs() < 1 {
-            return false;
-        }
-    }
+    let mut prev = numbers[1];
 
-    true
+    numbers[2..].iter().all(|&curr| {
+        let diff = curr - prev;
+        prev = curr;
+        diff.abs() <= 3 && diff.abs() >= 1 && 
+        ((increasing && diff > 0) || (!increasing && diff < 0))
+    })
 }
 
+#[inline]
 fn is_safe_with_dampener(numbers: &[i64]) -> bool {
     if is_safe_sequence(numbers) {
         return true;
     }
 
-    for i in 0..numbers.len() {
-        let mut modified = numbers.to_vec();
-        modified.remove(i);
-        if is_safe_sequence(&modified) {
+    let len = numbers.len();
+    if len < 2 {
+        return true;
+    }
+
+    for i in 0..len-1 {
+        let diff = numbers[i+1] - numbers[i];
+        if diff.abs() <= 3 && diff.abs() >= 1 {
+            continue;
+        }
+        
+        if (i > 0 && i < len-1 && check_sequence_without_index(numbers, i)) ||
+           (i+1 < len && check_sequence_without_index(numbers, i+1)) {
             return true;
         }
     }
@@ -48,19 +54,69 @@ fn is_safe_with_dampener(numbers: &[i64]) -> bool {
     false
 }
 
-pub fn solve_for_input(input: &str) -> Result<i64> {
-    let result = input
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .filter(|line| {
-            let numbers: Vec<i64> = line
-                .split_whitespace()
-                .filter_map(|n| n.parse().ok())
-                .collect();
-            
-            is_safe_with_dampener(&numbers)
-        })
-        .count();
+#[inline]
+fn check_sequence_without_index(numbers: &[i64], skip_idx: usize) -> bool {
+    if skip_idx >= numbers.len() {
+        return false;
+    }
 
-    Ok(result as i64)
+    let mut first_number = true;
+    let mut prev_number = 0i64;
+    let mut first_diff = 0i64;
+    let mut found_first_diff = false;
+
+    for (idx, &num) in numbers.iter().enumerate() {
+        if idx == skip_idx {
+            continue;
+        }
+
+        if first_number {
+            first_number = false;
+            prev_number = num;
+            continue;
+        }
+
+        let diff = num - prev_number;
+        
+        if !found_first_diff {
+            first_diff = diff;
+            found_first_diff = true;
+            if diff == 0 || diff.abs() > 3 {
+                return false;
+            }
+        } else {
+            if diff.abs() > 3 || diff.abs() < 1 ||
+               (first_diff > 0 && diff <= 0) || 
+               (first_diff < 0 && diff >= 0) {
+                return false;
+            }
+        }
+        
+        prev_number = num;
+    }
+
+    found_first_diff
+}
+
+pub fn solve_for_input(input: &str) -> Result<i64> {
+    let mut numbers = Vec::with_capacity(8);
+    let mut count = 0;
+
+    for line in input.lines() {
+        if line.is_empty() {
+            continue;
+        }
+
+        numbers.clear();
+        numbers.extend(
+            line.split_whitespace()
+                .filter_map(|n| n.parse::<i64>().ok())
+        );
+
+        if is_safe_with_dampener(&numbers) {
+            count += 1;
+        }
+    }
+
+    Ok(count)
 }
