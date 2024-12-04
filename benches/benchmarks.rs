@@ -1,4 +1,4 @@
-use advent_of_code_2024::solutions::{day01, day02};
+use advent_of_code_2024::solutions::{day01, day02, day03};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
@@ -155,6 +155,20 @@ fn benchmark_all(c: &mut Criterion) {
             &[
                 ("Part 1".to_string(), day02::part1::solve_for_input),
                 ("Part 2".to_string(), day02::part2::solve_for_input),
+            ],
+        );
+    }
+
+    // Benchmark Day 03
+    if let Ok(input) = day03::read_input() {
+        benchmark_day(
+            c,
+            &mut results,
+            3,
+            &input,
+            &[
+                ("Part 1".to_string(), day03::part1::solve_for_input),
+                ("Part 2".to_string(), day03::part2::solve_for_input),
             ],
         );
     }
