@@ -1,11 +1,4 @@
 use anyhow::Result;
-use regex::Regex;
-use lazy_static::lazy_static;
-
-lazy_static! {
-    // "mul(" followed by 1-3 digits, a comma, 1-3 digits, and ")"
-    static ref MUL_PATTERN: Regex = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
-}
 
 pub fn solve() -> Result<i64> {
     let input = super::read_input()?;
@@ -16,11 +9,20 @@ pub fn solve_for_input(input: &str) -> Result<i64> {
     let mut total: i64 = 0;
     
     for line in input.lines() {
-        for cap in MUL_PATTERN.captures_iter(line) {
-            if let (Some(x), Some(y)) = (cap.get(1), cap.get(2)) {
-                if let (Ok(x), Ok(y)) = (x.as_str().parse::<i64>(), y.as_str().parse::<i64>()) {
-                    total += x * y;
+        let mut start = 0;
+        while let Some(idx) = line[start..].find("mul(") {
+            let pos = start + idx;
+            if let Some(end_pos) = line[pos+4..].find(')') {
+                let args = &line[pos+4..pos+4+end_pos];
+                if let Some(comma_idx) = args.find(',') {
+                    let (x_str, y_str) = (&args[..comma_idx], &args[comma_idx+1..]);
+                    if let (Ok(x), Ok(y)) = (x_str.parse::<i64>(), y_str.parse::<i64>()) {
+                        total += x * y;
+                    }
                 }
+                start = pos + 4 + end_pos + 1;
+            } else {
+                break;
             }
         }
     }

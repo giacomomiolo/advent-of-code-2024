@@ -1,5 +1,6 @@
-use advent_of_code_2024::solutions::{day01, day02, day03};
+use advent_of_code_2024::solutions::{day01, day02, day03, day04};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
@@ -131,46 +132,43 @@ fn benchmark_day(
 fn benchmark_all(c: &mut Criterion) {
     let mut results = Vec::new();
     
-    // Benchmark Day 01
-    if let Ok(input) = day01::read_input() {
-        benchmark_day(
-            c,
-            &mut results,
-            1,
-            &input,
-            &[
-                ("Part 1".to_string(), day01::part1::solve_for_input),
-                ("Part 2".to_string(), day01::part2::solve_for_input),
-            ],
-        );
-    }
+    let bench_day = env::var("BENCH_DAY").ok().and_then(|d| d.parse::<u32>().ok());
+    let bench_input = env::var("BENCH_INPUT").ok();
 
-    // Benchmark Day 02
-    if let Ok(input) = day02::read_input() {
-        benchmark_day(
-            c,
-            &mut results,
-            2,
-            &input,
-            &[
-                ("Part 1".to_string(), day02::part1::solve_for_input),
-                ("Part 2".to_string(), day02::part2::solve_for_input),
-            ],
-        );
-    }
+    let days = [
+        (1, day01::read_input as fn() -> anyhow::Result<String>, vec![
+            ("Part 1".to_string(), day01::part1::solve_for_input as fn(&str) -> anyhow::Result<i64>),
+            ("Part 2".to_string(), day01::part2::solve_for_input),
+        ]),
+        (2, day02::read_input, vec![
+            ("Part 1".to_string(), day02::part1::solve_for_input),
+            ("Part 2".to_string(), day02::part2::solve_for_input),
+        ]),
+        (3, day03::read_input, vec![
+            ("Part 1".to_string(), day03::part1::solve_for_input),
+            ("Part 2".to_string(), day03::part2::solve_for_input),
+        ]),
+        (4, day04::read_input, vec![
+            ("Part 1".to_string(), day04::part1::solve_for_input),
+            ("Part 2".to_string(), day04::part2::solve_for_input),
+        ]),
+    ];
 
-    // Benchmark Day 03
-    if let Ok(input) = day03::read_input() {
-        benchmark_day(
-            c,
-            &mut results,
-            3,
-            &input,
-            &[
-                ("Part 1".to_string(), day03::part1::solve_for_input),
-                ("Part 2".to_string(), day03::part2::solve_for_input),
-            ],
-        );
+    if let Some(d) = bench_day {
+        if let Some((_, read_fn, parts)) = days.iter().find(|(day, _, _)| *day == d) {
+            let input = if let Some(custom_input) = &bench_input {
+                fs::read_to_string(custom_input).unwrap_or_else(|_| panic!("Could not read input file: {}", custom_input))
+            } else {
+                read_fn().expect("Failed to read input")
+            };
+            benchmark_day(c, &mut results, d, &input, parts);
+        }
+    } else {
+        for (day, read_fn, parts) in days {
+            if let Ok(input) = read_fn() {
+                benchmark_day(c, &mut results, day, &input, &parts);
+            }
+        }
     }
 
     update_readme(&results);
